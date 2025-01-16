@@ -1,0 +1,24 @@
+[
+    {
+        "1001": {
+            "code": 404,
+            "error": "Blah Blah"
+        },
+        "1002": {
+            "code": 400,
+            "error": "User not found"
+        },
+        "1003": {
+            "code": 500,
+            "error": "Database connection error"
+        },
+        "1004": {
+            "code": 401,
+            "error": "Unauthorized access"
+        },
+        "1005": {
+            "code": 400,
+            "error": "Operation failed"
+        }
+    }
+]
