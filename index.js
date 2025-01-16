@@ -8,6 +8,7 @@ import { throwCustomError } from './helper/error.js';
 import { sendError } from './helper/requestHandler.js';
 import { sendAlert } from './helper/telegram.js';
 import { logger } from './helper/logger.js';
+import mongoose from 'mongoose';
 
 dotenv.config()
 const app = express()
@@ -63,6 +64,10 @@ process.on('SIGINT',async()=>{
     process.exit(0);
 })
 
-app.listen(PORT,()=>{
+mongoose.connect(process.env.DB_URL).then(()=>{
+    app.listen(PORT,()=>{
     console.log(`server started on port: ${PORT}`)
+})
+}).catch(err =>{
+    console.log('error in connecting database')
 })
