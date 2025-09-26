@@ -19,6 +19,14 @@
         "1005": {
             "code": 400,
             "error": "Operation failed"
+        },
+        "1006": {
+            "code": 400,
+            "error": "input validation failed"
+        },
+        "1007": {
+            "code": 409,
+            "error": "user with the same email already exists"
         }
     }
 ]

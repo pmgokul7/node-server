@@ -15,6 +15,7 @@ export const sendSuccess = async (req, res, message, code = 200, data = null) =>
 
 export const sendError = async (req, res, error) => {
     try {
+        console.log(error)
         res.status(error.statusCode || 400).json({
             status: 'error',
             message: error.message || 'Operation failed',
