@@ -7,6 +7,7 @@ const botToken = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
 
 export const sendAlert = async (message) => {
+    return;
     try {
         const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
         const params = {

@@ -5,88 +5,55 @@ import * as jwt_decode from "jwt-decode";
 import { User } from "../models/user.model.js";
 import jwt from 'jsonwebtoken';
 import { isValidEmail } from "../helper/utilities.js";
-
+import bcrypt from "bcrypt";
+import { helper_getMyWorkSpaces } from "../services/workspace.service.js";
 
 export const loginUser = async (req, res) => {
     try {
         const body = req.body;
         console.log(body)
         const schema = Joi.object({
-            token: Joi.string().optional(),
-            origin: Joi.string().valid("google", "normal").required(),
-            email: Joi.string().email().optional()
+            email: Joi.string().email().optional(),
+            password: Joi.string().min(6).optional(),
         })
         const { error } = schema.validate(body)
         if (error) {
             throwCustomError(1006)
         }
-        let response = {};
-        if (body.origin === "google") {
-            const user = jwt_decode.jwtDecode(body.token);
+        let userExists = await User.findOne({
+            email: body?.email
+        })
 
-            let userExists = await User.findOne({
-                email: user?.email
-            })
-            if (!userExists) {
-                userExists = await User.create({
-                    username: user?.name.replaceAll(" ", "_"),
-                    email: user?.email,
-                    image_url: user?.picture,
-                    origin: "google"
-                })
-                userExists.new = true
-            }
-
-            response = {
-                username: userExists.username,
-                email: userExists.email,
-                createdAt: userExists.createdAt,
-                new: userExists?.new
-            }
-
-            const token = jwt.sign(response, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES })
-            const refreshToken = jwt.sign(response, process.env.JWT_SECRET, { expiresIn: '7d' })
-
-            response.token = token;
-            response.refreshToken = refreshToken;
-        } else if (body.origin == "normal") {
-            if (!body.email || !isValidEmail(body.email)) {
-                throwCustomError(1006)
-            }
-
-            let userExists = await User.findOne({
-                email: body?.email
-            })
-
-            if (!userExists) {
-                userExists = await User.create({
-                    username: body?.email.split("@")[0],
-                    email: body?.email,
-                    image_url: "",
-                    origin: body.origin,
-
-                })
-                userExists.new = true
-            } else {
-                throwCustomError(1007)
-            }
-
-            
-            response = {
-                username: userExists.username,
-                email: userExists.email,
-                createdAt: userExists.createdAt,
-                new: userExists?.new
-            }
-
-            const token = jwt.sign(response, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES })
-            const refreshToken = jwt.sign(response, process.env.JWT_SECRET, { expiresIn: '7d' })
-
-            response.token = token;
-            response.refreshToken = refreshToken;
+        if (!userExists) {
+            throwCustomError(1008)
         }
 
+        const resopnse = {
+            email: userExists?.email,
+            id: userExists?._id
+        }
 
+        const isPasswordValid = await bcrypt.compare(body.password, userExists.password);
+
+        if (!isPasswordValid) {
+            throwCustomError(1008)
+        }
+        
+        const token = jwt.sign(resopnse, process.env.JWT_SECRET_KEY, {
+            expiresIn: process.env.JWT_EXPIRES_IN
+        })
+        const refreshToken = jwt.sign(resopnse, process.env.JWT_SECRET_KEY, {
+            expiresIn: "30d"
+        })
+
+        // const myWorkSpaces = await helper_getMyWorkSpaces(userExists?._id)    
+        const response = {
+            token,
+            refreshToken,
+            email: userExists?.email,
+            id: userExists?._id,
+            // myWorkSpaces
+        }
 
         await sendSuccess(req, res, "user created", 201, response)
 
@@ -99,10 +66,36 @@ export const loginUser = async (req, res) => {
 export const registerUser = async (req, res) => {
     try {
         const body = req.body;
-        // const schema = Joi.object({
-        //     email: Joi.string.
-        // })
-    } catch (error) {
+        console.log(body)
+        const schema = Joi.object({
+            email: Joi.string().email().required(),
+            password: Joi.string().min(6).required(),
+            confirmPassword: Joi.string().valid(Joi.ref('password')).required()
+        })
+        const { error } = schema.validate(body)
+        if (error) {
+            throwCustomError(1006)
+        }
 
+        let userExists = await User.findOne({
+            email: body?.email
+        })
+
+        if (userExists) {
+            throwCustomError(1007)
+        }
+        
+        userExists = await User.create({
+            username: body?.email.split("@")[0],
+            email: body?.email,
+            password: await bcrypt.hash(body.password, 10),
+            origin: "normal"
+        })
+        await sendSuccess(req, res, "user created", 201, userExists)
+    } catch (error) {
+        console.log(error)
+        sendError(req, res, error)
     }
 }
+
+
