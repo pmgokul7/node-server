@@ -31,6 +31,46 @@
          "1008": {
             "code": 401,
             "error": "Invalid credentials"
+        },
+        "1009": {
+            "code": 401,
+            "error": "public key not found"
+        },
+        "1010": {
+            "code": 400,
+            "error": "invitation failed or not found"
+        },
+        "1011": {
+            "code": 404,
+            "error": "Workspace not found"
+        },
+        "1012": {
+            "code": 400,
+            "error": "Invalid workspace id"
+        },
+        "1014": {
+            "code": 404,
+            "error": "Host not found"
+        },
+        "1015": {
+            "code": 403,
+            "error": "This invite was sent to a different email address"
+        },
+        "1016": {
+            "code": 403,
+            "error": "Only the workspace owner can perform this action"
+        },
+        "1017": {
+            "code": 400,
+            "error": "One or more share recipients are not eligible for a workspace key"
+        },
+        "1018": {
+            "code": 404,
+            "error": "Workspace key has not been shared with you yet"
+        },
+        "1019": {
+            "code": 404,
+            "error": "Workspace key is not set on this workspace"
         }
     }
 ]

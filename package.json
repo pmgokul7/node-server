@@ -24,6 +24,7 @@
     "jwt-decode": "^4.0.0",
     "log4js": "^6.9.1",
     "mongoose": "^8.9.5",
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "uuid": "^14.0.0"
   }
 }

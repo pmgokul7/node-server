@@ -9,10 +9,21 @@ import { sendError } from './helper/requestHandler.js';
 import { sendAlert } from './helper/telegram.js';
 import { logger } from './helper/logger.js';
 import mongoose from 'mongoose';
+import dns from 'dns';
+import { ensurePricingPlansSeeded } from './services/pricingPlan.service.js';
 
 dotenv.config()
+
+// mongodb+srv requires SRV DNS; local resolvers on 127.0.0.1 often refuse querySrv
+if (process.env.DNS_SERVERS) {
+    dns.setServers(process.env.DNS_SERVERS.split(',').map((s) => s.trim()));
+} else if (dns.getServers().every((s) => s === '127.0.0.1' || s === '::1')) {
+    dns.setServers(['8.8.8.8', '8.8.4.4']);
+}
 const app = express()
 const PORT = process.env.PORT || 3001;
+
+app.set("trust proxy", true);
 
 app.use(helmet());
 
@@ -79,8 +90,13 @@ process.on('SIGINT', async () => {
 
 
 
-mongoose.connect(process.env.DB_URL).then(() => {
+mongoose.connect(process.env.DB_URL).then(async () => {
     console.log("connected to database")
+    try {
+        await ensurePricingPlansSeeded();
+    } catch (seedError) {
+        console.error("pricing plan seed failed:", seedError);
+    }
     const server = app.listen(PORT, () => {
         console.log(`server started on port: ${PORT}`)
         server.on('error', (err) => {
@@ -94,5 +110,5 @@ mongoose.connect(process.env.DB_URL).then(() => {
         });
     })
 }).catch(err => {
-    console.log('error in connecting database')
+    console.log('error in connecting database: ',err)
 })
